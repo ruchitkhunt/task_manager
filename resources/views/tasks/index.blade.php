@@ -125,11 +125,8 @@
         dragClass: 'task-dragging',
         onEnd: function(evt) {
             const ids = Array.from(el.children).map(li => li.dataset.id);
-            axios.post("{{ route('tasks.reorder') }}", {
-                    order: ids
-                })
-                .then(resp => {
-                })
+            axios.post("{{ route('tasks.reorder') }}", { order: ids })
+                .then(resp => {})
                 .catch(err => {
                     alert('Could not save order. Try again.');
                 });
@@ -169,30 +166,71 @@
         errTitle.classList.add('hidden');
         errDesc.classList.add('hidden');
         let ok = true;
-        if (!editTitle.value.trim()) {
+
+        const titleVal = editTitle.value.trim();
+        const descVal = editDescription.value.trim();
+
+        if (!titleVal) {
             errTitle.textContent = 'Title is required.';
             errTitle.classList.remove('hidden');
             ok = false;
-        } else if (editTitle.value.length > 255) {
+        } else if (titleVal.length > 255) {
             errTitle.textContent = 'Title must be under 255 characters.';
             errTitle.classList.remove('hidden');
             ok = false;
         }
-        if (editDescription.value.length > 2000) {
+
+        if (descVal.length > 2000) {
             errDesc.textContent = 'Description is too long.';
             errDesc.classList.remove('hidden');
             ok = false;
         }
+
         if (!ok) e.preventDefault();
     });
 
-    document.getElementById('clearForm').addEventListener('click', () => {
-        document.querySelector('form[action="{{ route('tasks.store') }}"]').reset();
+    const addForm = document.querySelector('form[action="{{ route('tasks.store') }}"]');
+    addForm.addEventListener('submit', (e) => {
+        const titleInput = addForm.querySelector('input[name="title"]');
+        const descInput = addForm.querySelector('input[name="description"]');
+        let valid = true;
 
+        addForm.querySelectorAll('.text-red-600').forEach(p => p.remove());
+
+        if (!titleInput.value.trim()) {
+            const error = document.createElement('p');
+            error.className = 'text-red-600 text-sm mt-1';
+            error.textContent = 'Title is required.';
+            titleInput.insertAdjacentElement('afterend', error);
+            valid = false;
+        } else if (titleInput.value.length > 255) {
+            const error = document.createElement('p');
+            error.className = 'text-red-600 text-sm mt-1';
+            error.textContent = 'Title must be under 255 characters.';
+            titleInput.insertAdjacentElement('afterend', error);
+            valid = false;
+        }
+
+        if (descInput.value.length > 2000) {
+            const error = document.createElement('p');
+            error.className = 'text-red-600 text-sm mt-1';
+            error.textContent = 'Description is too long.';
+            descInput.insertAdjacentElement('afterend', error);
+            valid = false;
+        }
+
+        if (!valid) e.preventDefault();
+    });
+
+    document.getElementById('clearForm').addEventListener('click', () => {
+        addForm.reset();
+        addForm.querySelectorAll('.text-red-600').forEach(p => p.remove());
     });
 
     setTimeout(function() {
-        document.getElementById('alert').style.display = 'none';
+        const alert = document.getElementById('alert');
+        if (alert) alert.style.display = 'none';
     }, 5000);
 </script>
+
 @endpush
